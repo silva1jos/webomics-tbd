@@ -1,0 +1,21 @@
+
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> Index </title>
+    </head>
+    <body>
+        <p><a href="{% url 'browse:add' %}"> New Experiment </a></p>
+    {% if latest_experiments %}
+        <ul>
+        {% for experiment in latest_experiments %}
+        <li><a href="{% url 'browse:detail' experiment.id %}">
+            {{ experiment.exp_name }}</a></li>
+        {% endfor %}
+        </ul>
+    {% else %}
+        <p>No experiemnts are available.</p>
+    {% endif %}
+    </body>
+</html>

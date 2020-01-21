@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> {{ experiment.exp_name }} </title>
+    </head>
+    <body>
+        <p><a href="{% url 'browse:index' %}"> All Experiments </a></p>
+        <h1>{{ experiment.exp_name }}<h1>
+
+        {% if error_message %}<p><strong>{{ error_message }}</strong></p>
+        {% endif %}
+        <ul>
+        {% for field, val in experiment.human_read_list %}
+            {% if val %}
+                <li> {{ field }} : {{ val }}</li>
+            {% endif %}
+        {% endfor %}
+        </ul>
+    </body>
+</html>
