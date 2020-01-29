@@ -1,1 +1,2 @@
 *.pyc
+webomics/view/files/*
