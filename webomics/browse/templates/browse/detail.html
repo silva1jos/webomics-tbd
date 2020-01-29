@@ -17,5 +17,6 @@
             {% endif %}
         {% endfor %}
         </ul>
+        <p><a href="{% url 'browse:delete' experiment.id %}"> Delete</a></p>
     </body>
 </html>

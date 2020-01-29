@@ -1,0 +1,19 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> Upload Gene Counts </title>
+    </head>
+    <body>
+        <p><a href="{% url 'view:index' %}"> View Home </a></p>
+        <h1> Upload Gene Count File <h1>
+        <form action="{% url 'view:upload' %}" method="post"
+              enctype="multipart/form-data">
+        {% csrf_token %}
+        <table>
+        {{ form.as_table }}
+        </table>
+        <p><input type="submit" value="Submit"></p>
+        </form>
+    </body>
+</html>

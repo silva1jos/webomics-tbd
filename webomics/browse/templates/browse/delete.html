@@ -1,0 +1,13 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> Delete: {{ experiment.exp_name }} </title>
+    </head>
+    <body>
+        <form method="post">{% csrf_token %}
+        <p>Are you sure you want to delete "{{ experiment.exp_name }}"?</p>
+        <input type="submit" value="Confirm">
+    </form>
+    </body>
+</html>
