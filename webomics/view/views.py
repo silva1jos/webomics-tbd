@@ -1,23 +1,21 @@
+import os
+
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import generic
 
-from plotly.offline import plot
-import plotly.graph_objs as go
-
+from .graphs import volcano_plot
 from .forms import UploadFileForm
 from .filetools import handle_uploaded_file
 
 
 def graph_view(request):
-    fig = go.Figure()
-    scatter = go.Scatter(x=[0, 1, 2, 3], y=[0, 1, 2, 3],
-                         mode='lines', name='test',
-                         opacity=0.8, marker_color='green')
-    fig.add_trace(scatter)  # might not want
-    plt_div = plot(fig, output_type='div', include_plotlyjs=False,
-                   config={'displaylogo': False})
+    plt_div = volcano_plot(os.path.join(os.path.dirname(__file__),
+                                        'files/test4.csv'),
+                           ['SRX014818and9', 'SRX014820and1', 'SRX014822and3'],
+                           ['SRX014824and5', 'SRX014826and7', 'SRX014828and9'],
+                           'gene')
     return render(request, 'view/index.html', {'graph': plt_div})
 
 
