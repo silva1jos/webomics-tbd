@@ -1,9 +1,9 @@
 import datetime
-import os
 
-from django.conf import settings
 from django.db import models
 from django.utils import timezone
+
+from .filetools import user_directory_path
 
 
 class Experiment(models.Model):
@@ -16,8 +16,7 @@ class Experiment(models.Model):
     version = models.IntegerField()
     comments = models.TextField()
     # I don't know if settings.BASE_DIR is same as settings.py file
-    file_path = models.FilePathField(path=os.path.join(settings.BASE_DIR,
-                                                       'exp_files'))
+    file_path = models.FileField(upload_to=user_directory_path)
 
     def __str__(self):
         return self.exp_name

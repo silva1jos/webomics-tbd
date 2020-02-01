@@ -10,7 +10,8 @@
             <h2> Submission Failed: {{error_message}} </h2>
         {% endif %}
         <h1> New Experiment <h1>
-        <form action="{% url 'browse:submit' %}" method="post">
+        <form action="{% url 'browse:add' %}" method="post"
+              enctype="multipart/form-data">
         {% csrf_token %}
         <table>
         {% for field in form %}

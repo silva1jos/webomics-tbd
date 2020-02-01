@@ -16,6 +16,7 @@ class TimeInput(forms.TimeInput):
 class ExperimentForm(forms.ModelForm):
     date_performed = forms.DateField(widget=forms.SelectDateWidget())
     time_performed = forms.TimeField(widget=TimeInput())
+    file = forms.FileField()
 
     class Meta:
         model = Experiment
@@ -24,6 +25,7 @@ class ExperimentForm(forms.ModelForm):
 
     def save(self, commit=True):
         model = super(ExperimentForm, self).save(commit=False)
+        model.file_path = self.cleaned_data['file']
         model.date_pref = datetime.combine(self.cleaned_data['date_performed'],
                                            self.cleaned_data['time_performed'])
         if commit:

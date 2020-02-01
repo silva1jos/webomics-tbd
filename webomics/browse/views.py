@@ -1,5 +1,4 @@
 from django.http import HttpResponseRedirect
-from django.forms import ValidationError
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.utils import timezone
@@ -19,14 +18,24 @@ class IndexView(generic.ListView):
                          .order_by('-date_pref')[:5]
 
 
-class AddView(generic.FormView):
+class AddView(generic.View):
     template_name = 'browse/add.html'
     form_class = ExperimentForm
     success_url = reverse_lazy('browse:index')
 
-    def form_valid(self, form):
-        form.save()
-        return super().form_valid(form)
+    def get(self, request, *args, **kwargs):
+        form = self.form_class()
+        return render(request, self.template_name, {'form': form})
+
+    def post(self, request, *args, **kwargs):
+        form = self.form_class(request.POST, request.FILES)
+        if form.is_valid():
+            form.save()
+            return HttpResponseRedirect(reverse('browse:index'))
+        else:
+            print('invalid')
+            print(form.errors)
+        return render(request, self.template_name, {'form': form})
 
 
 class DelExpView(generic.DeleteView):
@@ -34,17 +43,6 @@ class DelExpView(generic.DeleteView):
     model = Experiment
     # Need reverse lazy to prevent a circular import error
     success_url = reverse_lazy('browse:index')
-
-
-def add(request):
-    # The Above Add View Does the same thing
-    if request.method == 'POST':
-        form = ExperimentForm(request.post)
-        if form.is_valid():
-            form.save()
-            return HttpResponseRedirect(reverse('browse:index'))
-    form = ExperimentForm()
-    return render(request, 'browse/add.html', {'form': form})
 
 
 class ExpDetailView(generic.DetailView):
@@ -56,16 +54,3 @@ def detail(request, pk):
     # Use generic ExpDetailView above
     experiment = get_object_or_404(Experiment, pk=pk)
     return render(request, 'browse/detail.html', {'experiment': experiment})
-
-
-def submit(request):
-    # Dont need this anymore as using the default view
-    try:
-        e = ExperimentForm(request.POST)
-        e.save()
-    except ValidationError as error:
-        print(error)
-        return render(request, 'browse/add.html',
-                      {'error_message': 'Submission Failed %s' % str(error),
-                       'form': ExperimentForm()})
-    return HttpResponseRedirect(reverse('browse:index'))

@@ -12,7 +12,7 @@ from .filetools import handle_uploaded_file
 
 def graph_view(request):
     plt_div = volcano_plot(os.path.join(os.path.dirname(__file__),
-                                        'files/test4.csv'),
+                                        '..files/test4.csv'),
                            ['SRX014818and9', 'SRX014820and1', 'SRX014822and3'],
                            ['SRX014824and5', 'SRX014826and7', 'SRX014828and9'],
                            'gene')
