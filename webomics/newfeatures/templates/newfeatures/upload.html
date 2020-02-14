@@ -5,9 +5,9 @@
         <title> Upload Gene Counts </title>
     </head>
     <body>
-        <p><a href="{% url 'view:index' %}"> View Home </a></p>
+        <p><a href="{% url 'newfeatures:index' %}"> View Home </a></p>
         <h1> Upload Gene Count File <h1>
-        <form action="{% url 'view:upload' %}" method="post"
+        <form action="{% url 'newfeatures:upload' %}" method="post"
               enctype="multipart/form-data">
         {% csrf_token %}
         <table>

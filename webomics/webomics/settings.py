@@ -31,7 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'view.apps.ViewConfig',
+    'newfeatures.apps.NewFeaturesConfig',
     'browse.apps.BrowseConfig',
     'django.contrib.admin',
     'django.contrib.auth',

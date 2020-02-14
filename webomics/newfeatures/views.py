@@ -16,13 +16,13 @@ def graph_view(request):
                            ['SRX014818and9', 'SRX014820and1', 'SRX014822and3'],
                            ['SRX014824and5', 'SRX014826and7', 'SRX014828and9'],
                            'gene')
-    return render(request, 'view/index.html', {'graph': plt_div})
+    return render(request, 'newfeatures/index.html', {'graph': plt_div})
 
 
 class FileUploadView(generic.View):
     form_class = UploadFileForm
-    success_url = reverse_lazy('view:index')
-    template_name = 'view/upload.html'
+    success_url = reverse_lazy('newfeatures:index')
+    template_name = 'newfeatures/upload.html'
 
     def get(self, request, *args, **kwargs):
         form = self.form_class()
@@ -32,5 +32,5 @@ class FileUploadView(generic.View):
         form = self.form_class(request.POST, request.FILES)
         if form.is_valid():
             handle_uploaded_file(request.FILES['file'], request.POST['title'])
-            return HttpResponseRedirect('/view')
-        return render(request, 'view/upload.html', {'form': form})
+            return HttpResponseRedirect('/newfeatures')
+        return render(request, 'newfeatures/upload.html', {'form': form})
