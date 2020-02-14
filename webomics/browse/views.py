@@ -4,8 +4,9 @@ from django.urls import reverse, reverse_lazy
 from django.utils import timezone
 from django.views import generic
 
-from .forms import ExperimentForm
+from .forms import ExperimentForm, GeneColForm, GeneCountGroupsForm
 from .models import Experiment
+from .graphs import volcano_plot
 
 
 class IndexView(generic.ListView):
@@ -48,6 +49,56 @@ class DelExpView(generic.DeleteView):
 class ExpDetailView(generic.DetailView):
     model = Experiment
     template_name = 'browse/detail.html'
+
+
+class GraphView(generic.View):
+    """ Base graph view for an experiment"""
+    template_name = 'browse/graph.html'
+    # success_url = reverse_lazy('browse:graph')
+
+    def get(self, request, *args, **kwargs):
+        exp = get_object_or_404(Experiment, pk=kwargs['pk'])
+        form_gene = GeneColForm(count_file=exp.file_path.path)
+        form_group = GeneCountGroupsForm(count_file=exp.file_path.path)
+        return render(request, self.template_name,
+                      {'form_gene': form_gene, 'form_group': form_group,
+                       'experiment': exp})
+
+    def post(self, request, *args, **kwargs):
+        # Same for now
+        exp = get_object_or_404(Experiment, pk=kwargs['pk'])
+        form_gene = GeneColForm(count_file=exp.file_path.path)
+        form_group = GeneCountGroupsForm(count_file=exp.file_path.path)
+        return render(request, self.template_name,
+                      {'form_gene': form_gene, 'form_group': form_group,
+                       'experiment': exp})
+
+
+def load_groups(request, pk):
+    gene_col_idx = request.GET.get('gene_col_idx')
+    exp = get_object_or_404(Experiment, pk=pk)
+    form_group = GeneCountGroupsForm(gene_col_idx=gene_col_idx,
+                                     count_file=exp.file_path.path)
+    return render(request, 'browse/load_groups.html', {'form': form_group})
+
+
+def load_volcano_plot(request, pk):
+    exp = get_object_or_404(Experiment, pk=pk)
+    data = dict(request.GET)
+    gene_col = int(data.pop('Select Gene Column')[0])
+    with open(exp.file_path.path) as f:
+        gene_col = f.readline().rstrip().split('\t')[gene_col]
+
+    data.pop('csrfmiddlewaretoken')
+    group1 = []
+    group2 = []
+    for key, val in data.items():
+        if val == ['True']:
+            group2.append(key)
+        elif val == ['False']:
+            group1.append(key)
+    plt_div = volcano_plot(exp.file_path.path, group1, group2, gene_col)
+    return render(request, 'browse/load_graph.html', {'graph': plt_div})
 
 
 def detail(request, pk):

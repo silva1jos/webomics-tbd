@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+        <title> {{ experiment.exp_name}} Graph View </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+    </head>
+    <body>
+        <p><a href="{% url 'browse:detail' experiment.id%}"> Back to Details </a></p>
+        <h1> {{ experiment.exp_name}} Graph View  </h1>
+        <form action="{% url 'browse:ajax_load_volcano' experiment.id%}"
+              id="post-form"
+              data-groups-url="{% url 'browse:ajax_load_groups' experiment.id%}">
+        {% csrf_token %}
+        <!-- It might make sense to have two forms here and update the second -->
+        <!-- ie form1.as_table and form2.as_table split on gene col -->
+        <table id="post-gene">
+        {{ form_gene.as_table }}
+        </table>
+        <table id="post-group">
+        {{ form_group.as_table }}
+        </table>
+        <p><input type="submit" value="Submit"></p>
+        </form>
+        <div id="volcano-plot">
+        </div>
+        {% load static %}
+        <script src="{% static 'browse/graph.js'%}"></script>
+    </body>
+</html>

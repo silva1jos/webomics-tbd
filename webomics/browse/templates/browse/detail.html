@@ -17,6 +17,8 @@
             {% endif %}
         {% endfor %}
         </ul>
+        <!-- Could add a { % if field.file_type == GENECOUNT % } -->
+        <p><a href="{% url 'browse:graph' experiment.id %}"> View Graphs</a></p>
         <p><a href="{% url 'browse:delete' experiment.id %}"> Delete</a></p>
     </body>
 </html>
