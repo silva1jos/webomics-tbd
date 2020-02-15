@@ -4,18 +4,18 @@
     <head>
         <meta charset="utf-8">
         <title> Index </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     </head>
     <body>
         <p><a href="{% url 'browse:add' %}"> New Experiment </a></p>
-    {% if latest_experiments %}
-        <ul>
-        {% for experiment in latest_experiments %}
-        <li><a href="{% url 'browse:detail' experiment.id %}">
-            {{ experiment.exp_name }}</a></li>
-        {% endfor %}
-        </ul>
-    {% else %}
-        <p>No experiemnts are available.</p>
-    {% endif %}
+        <form action="{% url 'browse:ajax_filter_experiments'%}"
+              id="filter-form">
+        <table id="filter-cols">
+        {{ form.as_table }}
+        </table>
+        </form>
+        <div id=filtered-data></div>
+        {% load static %}
+        <script src="{% static 'browse/index.js'%}"></script>
     </body>
 </html>

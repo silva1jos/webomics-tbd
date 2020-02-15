@@ -1,0 +1,10 @@
+{% if experiments %}
+<ul>
+    {% for e in experiments %}
+         <li><a href="{% url 'browse:detail' experiment.id %}"> 
+            {{ e.exp_name }}</a></li>
+    {% endfor %}
+</ul>
+{% else %}
+<p>No experiemnts meet these criteria.</p>
+{% endif %}

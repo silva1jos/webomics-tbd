@@ -1,17 +1,20 @@
-
 <!DOCTYPE html>
 <html>
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
         <title> Index </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     </head>
     <body>
-        <h1> Graph Test </h1>
-        {% autoescape off %}
-        {{ graph }}
-        {% endautoescape %}
-        <a href="{% url 'newfeatures:upload' %}">Upload Filed</a>
+        <p> Test page for filtering </p>
+        <form action="{% url 'newfeatures:ajax_filter_experiments'%}"
+              id="filter-form">
+        <table id="filter-cols">
+        {{ form.as_table }}
+        </table>
+        </form>
+        <div id=filtered-data></div>
+        {% load static %}
+        <script src="{% static 'newfeatures/index.js'%}"></script>
     </body>
 </html>

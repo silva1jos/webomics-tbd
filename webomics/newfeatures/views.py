@@ -1,25 +1,28 @@
-import os
-
 from django.http import HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse_lazy
 from django.views import generic
 
-from .graphs import volcano_plot
-from .forms import UploadFileForm
+
+from .forms import UploadFileForm, ExperimentFilterForm
 from .filetools import handle_uploaded_file
 
 
-def graph_view(request):
-    plt_div = volcano_plot(os.path.join(os.path.dirname(__file__),
-                                        '..files/test4.csv'),
-                           ['SRX014818and9', 'SRX014820and1', 'SRX014822and3'],
-                           ['SRX014824and5', 'SRX014826and7', 'SRX014828and9'],
-                           'gene')
-    return render(request, 'newfeatures/index.html', {'graph': plt_div})
+def index_view(request):
+    return render(request, 'newfeatures/index.html',
+                  {'form': ExperimentFilterForm()})
+
+
+def filter_exp(request):
+    print('request recieved')
+    form = ExperimentFilterForm(request.GET)
+    print(form.filter())
+    return render(request, 'newfeatures/load_experiment.html',
+                  {'experiments': form.filter()})
 
 
 class FileUploadView(generic.View):
+    # Dont want to handle file uploads this way anymore
     form_class = UploadFileForm
     success_url = reverse_lazy('newfeatures:index')
     template_name = 'newfeatures/upload.html'

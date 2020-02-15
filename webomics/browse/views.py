@@ -1,22 +1,18 @@
 from django.http import HttpResponseRedirect
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
-from django.utils import timezone
 from django.views import generic
 
-from .forms import ExperimentForm, GeneColForm, GeneCountGroupsForm
+from .forms import ExperimentForm, GeneColForm, GeneCountGroupsForm, \
+    ExperimentFilterForm
 from .models import Experiment
 from .graphs import volcano_plot
 
 
-class IndexView(generic.ListView):
+class IndexView(generic.FormView):
     template_name = 'browse/index.html'
-    context_object_name = 'latest_experiments'
-
-    def get_queryset(self):
-        """ Return the last five published experiments."""
-        return Experiment.objects.filter(last_update__lte=timezone.now()) \
-                         .order_by('-date_pref')[:5]
+    form_class = ExperimentFilterForm
+    success_url = reverse_lazy('browse:index')
 
 
 class AddView(generic.View):
@@ -37,6 +33,15 @@ class AddView(generic.View):
             print('invalid')
             print(form.errors)
         return render(request, self.template_name, {'form': form})
+
+
+def filter_exp(request):
+    print('request recieved')
+    form = ExperimentFilterForm(request.GET)
+    for i in form.filter():
+        print(i.id)
+    return render(request, 'browse/load_experiment.html',
+                  {'experiments': form.filter()})
 
 
 class DelExpView(generic.DeleteView):

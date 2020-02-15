@@ -5,6 +5,7 @@
         <title> Delete: {{ experiment.exp_name }} </title>
     </head>
     <body>
+        <p><a href="{% url 'browse:detail' experiment.id %}"> Back </a></p>
         <form method="post">{% csrf_token %}
         <p>Are you sure you want to delete "{{ experiment.exp_name }}"?</p>
         <input type="submit" value="Confirm">
