@@ -1,10 +1,24 @@
 {% if experiments %}
-<ul>
+<br>
+<table>
+    <tr>
+        <th>Experiment Name</th>
+        <th>Date Performed</th>
+        <th>Last Update</th>
+        <th>Author</th>
+        <th>Version</th>
+    </tr>
     {% for e in experiments %}
-         <li><a href="{% url 'browse:detail' e.id %}">
-            {{ e.exp_name }}</a></li>
+    <tr>
+         <td><a href="{% url 'browse:detail' e.id %}">
+            {{ e.exp_name }}</a></td>
+        <td>{{e.date_pref.date}}</td>
+        <td>{{e.last_update.date}}</td>
+        <td>{{e.author}}</td>
+        <td>{{e.version}}</td>
     {% endfor %}
-</ul>
+    </tr>
+</table>
 {% else %}
 <p>No experiemnts meet these criteria.</p>
 {% endif %}

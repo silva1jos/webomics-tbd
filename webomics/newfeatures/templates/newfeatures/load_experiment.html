@@ -1,7 +1,7 @@
 {% if experiments %}
 <ul>
     {% for e in experiments %}
-         <li><a href="{% url 'browse:detail' experiment.id %}"> 
+         <li><a href="{% url 'browse:detail' e.id %}">
             {{ e.exp_name }}</a></li>
     {% endfor %}
 </ul>

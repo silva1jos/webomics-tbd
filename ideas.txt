@@ -1,0 +1,3 @@
+- Implement a pipeline option: data schema, pages, backend pipelining
+- Have a trace of steps Performed
+- 

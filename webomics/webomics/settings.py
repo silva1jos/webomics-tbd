@@ -31,6 +31,7 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
+    'pipelines.apps.PipelinesConfig',
     'newfeatures.apps.NewFeaturesConfig',
     'browse.apps.BrowseConfig',
     'django.contrib.admin',

@@ -38,8 +38,6 @@ class AddView(generic.View):
 def filter_exp(request):
     print('request recieved')
     form = ExperimentFilterForm(request.GET)
-    for i in form.filter():
-        print(i.id)
     return render(request, 'browse/load_experiment.html',
                   {'experiments': form.filter()})
 

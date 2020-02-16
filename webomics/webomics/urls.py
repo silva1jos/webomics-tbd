@@ -20,4 +20,5 @@ urlpatterns = [
     path('browse/', include('browse.urls')),
     path('admin/', admin.site.urls),
     path('newfeatures/', include('newfeatures.urls')),
+    path('pipelines/', include('pipelines.urls'))
 ]

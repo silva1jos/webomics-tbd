@@ -15,3 +15,7 @@ $('.form-filter').on('change', function(event){
     console.log("change");  // sanity check
     filter_experiments();
 });
+
+$(document).ready(function() {
+    filter_experiments();
+});

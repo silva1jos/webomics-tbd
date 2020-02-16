@@ -1,6 +1,7 @@
 from datetime import datetime
 
 from django import forms
+from django.utils import timezone
 
 from .models import Experiment
 
@@ -10,7 +11,9 @@ class TimeInput(forms.TimeInput):
 
 
 class ExperimentForm(forms.ModelForm):
-    date_performed = forms.DateField(widget=forms.SelectDateWidget())
+    date_performed = forms.DateField(widget=forms.SelectDateWidget(
+        years=range(2000, timezone.now().year + 1)
+    ))
     time_performed = forms.TimeField(widget=TimeInput())
     file = forms.FileField()
 
@@ -31,12 +34,13 @@ class ExperimentForm(forms.ModelForm):
 
 class ExperimentFilterForm(forms.Form):
     """ Form for filtering Experiments """
+    dateWidget = forms.SelectDateWidget(
+        years=range(2000, timezone.now().year + 1))
     name = forms.CharField(required=False)
-    perf_low = forms.DateField(required=False, widget=forms.SelectDateWidget())
-    perf_high = forms.DateField(required=False,
-                                widget=forms.SelectDateWidget())
-    upd_low = forms.DateField(required=False, widget=forms.SelectDateWidget())
-    upd_high = forms.DateField(required=False, widget=forms.SelectDateWidget())
+    perf_low = forms.DateField(required=False, widget=dateWidget)
+    perf_high = forms.DateField(required=False, widget=dateWidget)
+    upd_low = forms.DateField(required=False, widget=dateWidget)
+    upd_high = forms.DateField(required=False, widget=dateWidget)
     author = forms.CharField(required=False)
     ver_gte = forms.IntegerField(initial=0, required=False)
 
@@ -54,9 +58,9 @@ class ExperimentFilterForm(forms.Form):
                 author__icontains=self.cleaned_data['author'],
                 version__gte=self.cleaned_data['ver_gte'],)
             if self.cleaned_data['perf_low'] is not None:
-                q = q.filter(date_perf__gte=self.cleaned_data['perf_low'])
+                q = q.filter(date_pref__gte=self.cleaned_data['perf_low'])
             if self.cleaned_data['perf_high'] is not None:
-                q = q.filter(date_perf__lte=self.cleaned_data['perf_high'])
+                q = q.filter(date_pref__lte=self.cleaned_data['perf_high'])
             if self.cleaned_data['upd_low'] is not None:
                 q = q.filter(last_update__gte=self.cleaned_data['upd_low'])
             if self.cleaned_data['upd_high'] is not None:
