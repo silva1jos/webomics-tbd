@@ -1,12 +1,12 @@
-from django.http import HttpResponseRedirect
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
 from .forms import ExperimentForm, GeneColForm, GeneCountGroupsForm, \
-    ExperimentFilterForm
+    ExperimentFilterForm, SampleGroupsForm
 from .models import Experiment
-from .graphs import volcano_plot
+from . import graphs
 
 
 class IndexView(generic.FormView):
@@ -63,18 +63,20 @@ class GraphView(generic.View):
         exp = get_object_or_404(Experiment, pk=kwargs['pk'])
         form_gene = GeneColForm(count_file=exp.file_path.path)
         form_group = GeneCountGroupsForm(count_file=exp.file_path.path)
+        form_pca = SampleGroupsForm(count_file=exp.file_path.path)
         return render(request, self.template_name,
                       {'form_gene': form_gene, 'form_group': form_group,
-                       'experiment': exp})
+                       'experiment': exp, 'form_pca': form_pca})
 
     def post(self, request, *args, **kwargs):
         # Same for now
         exp = get_object_or_404(Experiment, pk=kwargs['pk'])
         form_gene = GeneColForm(count_file=exp.file_path.path)
         form_group = GeneCountGroupsForm(count_file=exp.file_path.path)
+        form_pca = SampleGroupsForm(count_file=exp.file_path.path)
         return render(request, self.template_name,
                       {'form_gene': form_gene, 'form_group': form_group,
-                       'experiment': exp})
+                       'experiment': exp, 'form_pca': form_pca})
 
 
 def load_groups(request, pk):
@@ -82,7 +84,10 @@ def load_groups(request, pk):
     exp = get_object_or_404(Experiment, pk=pk)
     form_group = GeneCountGroupsForm(gene_col_idx=gene_col_idx,
                                      count_file=exp.file_path.path)
-    return render(request, 'browse/load_groups.html', {'form': form_group})
+    form_pca = SampleGroupsForm(gene_col_idx=gene_col_idx,
+                                count_file=exp.file_path.path)
+    return JsonResponse({'groups': form_group.as_table(),
+                         'pca': form_pca.as_table()})
 
 
 def load_volcano_plot(request, pk):
@@ -91,8 +96,6 @@ def load_volcano_plot(request, pk):
     gene_col = int(data.pop('Select Gene Column')[0])
     with open(exp.file_path.path) as f:
         gene_col = f.readline().rstrip().split('\t')[gene_col]
-
-    data.pop('csrfmiddlewaretoken')
     group1 = []
     group2 = []
     for key, val in data.items():
@@ -100,7 +103,24 @@ def load_volcano_plot(request, pk):
             group2.append(key)
         elif val == ['False']:
             group1.append(key)
-    plt_div = volcano_plot(exp.file_path.path, group1, group2, gene_col)
+    plt_div = graphs.volcano_plot(exp.file_path.path, group1, group2, gene_col)
+    return render(request, 'browse/load_graph.html', {'graph': plt_div})
+
+
+def load_pca(request, pk):
+    exp = get_object_or_404(Experiment, pk=pk)
+    data = dict(request.GET)
+    print(data)
+    gene_col = int(data.pop('gene_col')[0])
+    with open(exp.file_path.path) as f:
+        samples = f.readline().rstrip().split('\t')
+    del samples[gene_col]
+    groups = []
+    for s in samples:
+        groups.append(data.get(s, "None")[0])
+
+    plt_div = graphs.pca_plot(exp.file_path.path, groups=groups,
+                              index_col=gene_col)
     return render(request, 'browse/load_graph.html', {'graph': plt_div})
 
 

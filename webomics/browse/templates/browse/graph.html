@@ -9,22 +9,33 @@
     <body>
         <p><a href="{% url 'browse:detail' experiment.id%}"> Back to Details </a></p>
         <h1> {{ experiment.exp_name}} Graph View  </h1>
-        <form action="{% url 'browse:ajax_load_volcano' experiment.id%}"
-              id="post-form"
+        <!-- volcano form -->
+        <form volcano-url="{% url 'browse:ajax_load_volcano' experiment.id%}"
+              id="volcano-form"
               data-groups-url="{% url 'browse:ajax_load_groups' experiment.id%}">
-        {% csrf_token %}
-        <!-- It might make sense to have two forms here and update the second -->
-        <!-- ie form1.as_table and form2.as_table split on gene col -->
-        <table id="post-gene">
-        {{ form_gene.as_table }}
-        </table>
-        <table id="post-group">
-        {{ form_group.as_table }}
-        </table>
-        <p><input type="submit" value="Submit"></p>
+              <p> Select Gene Column </p>
+              <table id="volcano-gene">
+                  {{ form_gene.as_table }}
+              </table>
+              <p> Volcano Plot Group Selections </p>
+              <table id="volcano-group">
+                  {{ form_group.as_table }}
+              </table>
+              <p><input type="submit" value="volcano"></p>
         </form>
-        <div id="volcano-plot">
-        </div>
+        <!-- pca form -->
+        <p> PCA Plot Group Selections </p>
+        <form pca-url="{% url 'browse:ajax_load_pca' experiment.id %}"
+              id='pca-form'>
+              <input id='gene-copy' type='hidden' name='gene_col'/>
+              <table id="pca-group">
+                  {{ form_pca.as_table }}
+              </table>
+              <p><input type="submit" value="pca"></p>
+        </form>
+        <!-- plots -->
+        <div id="volcano-plot"></div>
+        <div id="pca-plot"></div>
         {% load static %}
         <script src="{% static 'browse/graph.js'%}"></script>
     </body>

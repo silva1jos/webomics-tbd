@@ -13,6 +13,8 @@ urlpatterns = [path('', views.IndexView.as_view(), name='index'),
                     name='ajax_load_groups'),
                path('ajax/<int:pk>/load_volcano_plot', views.load_volcano_plot,
                     name='ajax_load_volcano'),
+               path('ajax/<int:pk>/load_pca', views.load_pca,
+                    name='ajax_load_pca'),
                path('ajax/filter_exp', views.filter_exp,
                     name='ajax_filter_experiments'),
                path('add', views.AddView.as_view(), name='add')] + \

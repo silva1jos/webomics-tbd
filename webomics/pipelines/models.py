@@ -1,6 +1,10 @@
 """ What does models.CASCASE do?
+    Include types on parameters/channels and inputs/outputs to limit the
+    selections when displaying a form
     Need to look at more Nextflow examples, they might be able to have end
     script after last process, also tag in processes.
+    Stitches should be lists of params/outputs to check that types work, and
+    name works.
     Need to read API"""
 from django.db import models
 
@@ -89,7 +93,9 @@ class InOutputs(models.Model):
     is_input = models.BooleanField()
     name = models.CharField(max_length=100)
     function = models.TextField()
-    description = models.TextFielqd()
+    description = models.TextField()
+    # Maybe reference a file type table here
+    data_type = models.CharField(max_length=50)
     process = models.ForeignKey(Process, on_delete=models.CASCADE)
 
     def __str__(self):
@@ -100,19 +106,25 @@ class InOutputs(models.Model):
             Input names must be a reference to process output or processed
             parameter (file or channel etc). These are replaced when processes
             and therefore in/outputs are stitched together."""
-        if stitch is None:
-            stitch = self.name
-        if self.is_input:
-            return self.function + ' from ' + stitch
-        return self.function + ' into ' + self.name
+        # Assumes stitch is a dict ow/ keys data_type and name
+        if not self.is_input:
+            return self.function + ' into ' + self.name
+        if stitch is None:  # Allow output test, ie no stitch
+            return self.function + ' from ' + self.name
+        if stitch.get('data_type') == self.data_type:
+            return self.function + ' from ' + stitch.get('name')
+        raise ValueError("Given stitch has does not match file type "
+                         + self.data_type + ' ' + str(stitch))
 
 
 class ParamsChannel(models.Model):
     """ I dont like this implementation, maybe want multiple files or channels.
     """
-    name = models.CharField(mex_length=200)
+    name = models.CharField(max_length=200)
     function = models.TextField()
     pipeline = models.ForeignKey(Pipeline, on_delete=models.CASCADE)
+    # Maybe reference a file type table here
+    data_type = models.CharField(max_length=50)
 
     def __str__(self):
         return self.name

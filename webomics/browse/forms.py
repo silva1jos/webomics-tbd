@@ -106,3 +106,12 @@ class GeneCountGroupsForm(GeneCountForm):
         for col in copy:
             self.fields[col] = forms.ChoiceField(choices=self.group_choices,
                                                  initial=False)
+
+
+class SampleGroupsForm(GeneCountForm):
+    def __init__(self, *args, **kwargs):
+        super(SampleGroupsForm, self).__init__(*args, **kwargs)
+        copy = list(self.columns)
+        del copy[self.gene_col_idx]
+        for col in copy:
+            self.fields[col] = forms.CharField(max_length=200)
