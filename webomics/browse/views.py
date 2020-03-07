@@ -103,11 +103,14 @@ def load_volcano_plot(request, pk):
             group_b.append(key)
         elif val == ['False']:
             group_a.append(key)
-    q = ExperimentCalc.objects.filter(exp_ref=exp, calc_name='volcano')
+    q = ExperimentCalc.objects.filter(exp_ref__id=exp.id, calc_name='volcano')
     for sample in group_a:
-        q.filter(calcoptions__value=sample, calcoptions__name='group_a')
+        q = q.filter(calcoptions__value__exact=sample,
+                     calcoptions__name__exact='group_a')
     for sample in group_b:
-        q.filter(calcoptions__value=sample, calcoptions__name='group_b')
+        q = q.filter(calcoptions__value__exact=sample,
+                     calcoptions__name__exact='group_b')
+    print(q)
     if not q.exists():
         print('making calc')
         # Make a list to use the same slicing as a queryset
