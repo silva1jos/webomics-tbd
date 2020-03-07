@@ -5,8 +5,8 @@ from django.views import generic
 
 from .forms import ExperimentForm, GeneColForm, GeneCountGroupsForm, \
     ExperimentFilterForm, SampleGroupsForm
-from .models import Experiment
-from . import graphs
+from .models import Experiment, ExperimentCalc
+from . import graphs, expcalcs
 
 
 class IndexView(generic.FormView):
@@ -96,14 +96,23 @@ def load_volcano_plot(request, pk):
     gene_col = int(data.pop('Select Gene Column')[0])
     with open(exp.file_path.path) as f:
         gene_col = f.readline().rstrip().split('\t')[gene_col]
-    group1 = []
-    group2 = []
+    group_a = []
+    group_b = []
     for key, val in data.items():
         if val == ['True']:
-            group2.append(key)
+            group_b.append(key)
         elif val == ['False']:
-            group1.append(key)
-    plt_div = graphs.volcano_plot(exp.file_path.path, group1, group2, gene_col)
+            group_a.append(key)
+    q = ExperimentCalc.objects.filter(exp_ref=exp, calc_name='volcano')
+    for sample in group_a:
+        q.filter(calcoptions__value=sample, calcoptions__name='group_a')
+    for sample in group_b:
+        q.filter(calcoptions__value=sample, calcoptions__name='group_b')
+    if not q.exists():
+        print('making calc')
+        # Make a list to use the same slicing as a queryset
+        q = [expcalcs.volcano_calc(exp, group_a, group_b, gene_col)]
+    plt_div = graphs.volcano_plot(q[0])
     return render(request, 'browse/load_graph.html', {'graph': plt_div})
 
 
@@ -118,7 +127,6 @@ def load_pca(request, pk):
     groups = []
     for s in samples:
         groups.append(data.get(s, "None")[0])
-
     plt_div = graphs.pca_plot(exp.file_path.path, groups=groups,
                               index_col=gene_col)
     return render(request, 'browse/load_graph.html', {'graph': plt_div})

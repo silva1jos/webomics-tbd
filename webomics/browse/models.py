@@ -1,9 +1,11 @@
 import datetime
+import os
 
 from django.db import models
 from django.utils import timezone
 
 from .filetools import user_directory_path
+from webomics.settings import MEDIA_ROOT
 
 
 class Experiment(models.Model):
@@ -38,3 +40,25 @@ class Experiment(models.Model):
     def was_recently_updated(self):
         return (timezone.now() - datetime.timedelta(days=1) <= self.last_update
                 <= timezone.now())
+
+
+class ExperimentCalc(models.Model):
+    """ Calculations applied to Experiments, useful for caching data preprocessing
+        which will be reused"""
+    calc_name = models.CharField(max_length=200)
+    date_created = models.DateTimeField(auto_now=True)
+    exp_ref = models.ForeignKey(Experiment, on_delete=models.CASCADE)
+    file_path = models.FilePathField(path=os.path.join(MEDIA_ROOT,
+                                                       'calcs/volcano'),
+                                     recursive=True,
+                                     max_length=500)
+
+    def __str__(self):
+        return self.calc_name
+
+
+class CalcOptions(models.Model):
+    """Experiment calcs can have options for their processing"""
+    calc = models.ForeignKey(ExperimentCalc, on_delete=models.CASCADE)
+    value = models.CharField(max_length=200)
+    name = models.CharField(max_length=200)

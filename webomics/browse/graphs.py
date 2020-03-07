@@ -10,9 +10,10 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.decomposition import PCA
 
 
-def volcano_plot(file_path, a, b, gene):
+def volcano_plot(exp_calc):
     """ a is group a column names, and b is group b column names, gene is name
         of gene column. Returns the volcano plot as html in a div"""
+    """
     print(file_path, a, b, gene)
     df_a = pd.read_csv(file_path, sep='\t', index_col=gene, usecols=a + [gene])
     df_b = pd.read_csv(file_path, sep='\t', index_col=gene, usecols=b + [gene])
@@ -30,6 +31,8 @@ def volcano_plot(file_path, a, b, gene):
     result = result.loc[(result != 0).all(axis=1)]
     result['log_pval'] = result.pval.apply(lambda x: -math.log(x))
     result['log_fc'] = result.fc.apply(lambda x: math.log(x, 2))
+    """
+    result = pd.read_csv(exp_calc.file_path, sep='\t', index_col=0)
     fig = go.Figure()
     print('create_graph')
     scatter = go.Scattergl(x=result['log_fc'], y=result['log_pval'],
