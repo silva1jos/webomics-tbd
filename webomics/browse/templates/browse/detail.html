@@ -3,6 +3,7 @@
     <head>
         <meta charset="utf-8">
         <title> {{ experiment.exp_name }} </title>
+        <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
     </head>
     <body>
         <p><a href="{% url 'browse:index' %}"> All Experiments </a></p>
@@ -20,5 +21,18 @@
         <!-- Could add a { % if field.file_type == GENECOUNT % } -->
         <p><a href="{% url 'browse:graph' experiment.id %}"> View Graphs</a></p>
         <p><a href="{% url 'browse:delete' experiment.id %}"> Delete</a></p>
+        <!-- Show the data for this experiment -->
+        <form action="{% url 'browse:ajax_filter_details' experiment.id %}"
+              id="filter-form">
+        <table id="filter-cols">
+        {{ form.as_table }}
+        </table>
+        </form>
+        <br>
+        <div id=filtered-data>
+        <p> Table did not load </p>
+        </div>
+        {% load static %}
+        <script src="{% static 'browse/detail.js'%}"></script>
     </body>
 </html>

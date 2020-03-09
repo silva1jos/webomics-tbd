@@ -3,6 +3,8 @@ from datetime import datetime
 from django import forms
 from django.utils import timezone
 
+import pandas as pd
+
 from .models import Experiment
 
 
@@ -72,7 +74,7 @@ class GeneCountForm(forms.Form):
     """ Empty Gene Count Form """
     def __init__(self, *args, gene_col_idx=0, **kwargs):
         count_file = kwargs.pop('count_file')
-        super(forms.Form, self).__init__(*args, **kwargs)
+        self.count_file = count_file
         with open(count_file) as f:
             self.columns = f.readline().rstrip().split('\t')
         try:
@@ -80,9 +82,54 @@ class GeneCountForm(forms.Form):
         except ValueError:
             raise ValueError('GeneCountForm cannot update with %s'
                              % gene_col_idx)
+        super(GeneCountForm, self).__init__(*args, **kwargs)
 
 
-class GeneColForm(GeneCountForm):
+class GeneCountFilterForm(GeneCountForm):
+    """ For for filtering TSVs where rows are gene, and cols are counts """
+    ordering = ((1, '^'), (2, 'v'), (0, '-'))
+    gene_name = forms.CharField(initial='', required=False)
+    page = forms.IntegerField(initial=1, required=True)
+    shown = forms.IntegerField(initial=50, required=True)  # Maybe make choices
+
+    def __init__(self, *args, gene_col_idx=0, **kwargs):
+        super(GeneCountFilterForm, self).__init__(*args, **kwargs)
+        for col in self.columns:
+            self.fields[col] = forms.ChoiceField(choices=self.ordering,
+                                                 initial=0,
+                                                 required=False)
+        for visible in self.visible_fields():
+            visible.field.widget.attrs['class'] = 'form-filter'
+
+    def filter(self):
+        df = pd.read_csv(self.count_file, sep='\t')
+        df.columns[self.gene_col_idx]
+        # Remove genes which are not included by filter
+        if self.cleaned_data['gene_name'] is not None:
+            col = df.columns[self.gene_col_idx]
+            df = df[df[col].str.contains(self.cleaned_data['gene_name'])]
+        # Ordering of the columns in the future look to save values in order,
+        # which they are applied
+        for col in self.columns:
+            order = int(self.cleaned_data[col])
+            if order != 0:
+                if order == 1:
+                    order = True
+                else:
+                    order = False
+                print(type(self.cleaned_data[col]))
+                print(str(self.cleaned_data[col]))
+                df.sort_values(by=col, axis=0, inplace=True,
+                               ascending=order)
+        # Get the subset of results show user 1-index use 0-based indexing
+        page = max(1, self.cleaned_data['page'])
+        shown = min(max(1, self.cleaned_data['shown']), 100)
+        lower = (page - 1) * shown
+        higher = page * shown
+        return df.iloc[lower:higher].to_html()
+
+
+class GeneColForm(GeneCountForm, forms.Form):
     def __init__(self, *args, **kwargs):
         # Sets columns and gene_col_index
         super(GeneColForm, self).__init__(*args, **kwargs)
@@ -96,7 +143,7 @@ class GeneColForm(GeneCountForm):
             widget=forms.Select(attrs={'id': 'gene-selector'}))
 
 
-class GeneCountGroupsForm(GeneCountForm):
+class GeneCountGroupsForm(GeneCountForm, forms.Form):
     group_choices = ((False, "Group 1"), (True, "Group 2"),)
 
     def __init__(self, *args, **kwargs):
@@ -108,7 +155,7 @@ class GeneCountGroupsForm(GeneCountForm):
                                                  initial=False)
 
 
-class SampleGroupsForm(GeneCountForm):
+class SampleGroupsForm(GeneCountForm, forms.Form):
     def __init__(self, *args, **kwargs):
         super(SampleGroupsForm, self).__init__(*args, **kwargs)
         copy = list(self.columns)

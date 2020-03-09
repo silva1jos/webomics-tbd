@@ -3,21 +3,19 @@ from django.shortcuts import get_object_or_404, render
 from django.urls import reverse, reverse_lazy
 from django.views import generic
 
-from .forms import ExperimentForm, GeneColForm, GeneCountGroupsForm, \
-    ExperimentFilterForm, SampleGroupsForm
 from .models import Experiment, ExperimentCalc
-from . import graphs, expcalcs
+from . import graphs, expcalcs, forms
 
 
 class IndexView(generic.FormView):
     template_name = 'browse/index.html'
-    form_class = ExperimentFilterForm
+    form_class = forms.ExperimentFilterForm
     success_url = reverse_lazy('browse:index')
 
 
 class AddView(generic.View):
     template_name = 'browse/add.html'
-    form_class = ExperimentForm
+    form_class = forms.ExperimentForm
     success_url = reverse_lazy('browse:index')
 
     def get(self, request, *args, **kwargs):
@@ -37,7 +35,7 @@ class AddView(generic.View):
 
 def filter_exp(request):
     print('request recieved')
-    form = ExperimentFilterForm(request.GET)
+    form = forms.ExperimentFilterForm(request.GET)
     return render(request, 'browse/load_experiment.html',
                   {'experiments': form.filter()})
 
@@ -49,9 +47,22 @@ class DelExpView(generic.DeleteView):
     success_url = reverse_lazy('browse:index')
 
 
-class ExpDetailView(generic.DetailView):
+class ExpDetailView(generic.View):
     model = Experiment
     template_name = 'browse/detail.html'
+    form = forms.GeneCountFilterForm
+
+    def get(self, request, *args, **kwargs):
+        exp = get_object_or_404(Experiment, pk=kwargs['pk'])
+        form = self.form(count_file=exp.file_path.path)
+        return render(request, self.template_name,
+                      {'form': form, 'experiment': exp})
+
+    def post(self, request, * args, **kwargs):
+        exp = get_object_or_404(Experiment, pk=kwargs['pk'])
+        form = self.form(count_file=exp.file_path.path)
+        return render(request, self.template_name,
+                      {'form': form, 'experiment': exp})
 
 
 class GraphView(generic.View):
@@ -61,9 +72,9 @@ class GraphView(generic.View):
 
     def get(self, request, *args, **kwargs):
         exp = get_object_or_404(Experiment, pk=kwargs['pk'])
-        form_gene = GeneColForm(count_file=exp.file_path.path)
-        form_group = GeneCountGroupsForm(count_file=exp.file_path.path)
-        form_pca = SampleGroupsForm(count_file=exp.file_path.path)
+        form_gene = forms.GeneColForm(count_file=exp.file_path.path)
+        form_group = forms.GeneCountGroupsForm(count_file=exp.file_path.path)
+        form_pca = forms.SampleGroupsForm(count_file=exp.file_path.path)
         return render(request, self.template_name,
                       {'form_gene': form_gene, 'form_group': form_group,
                        'experiment': exp, 'form_pca': form_pca})
@@ -71,26 +82,50 @@ class GraphView(generic.View):
     def post(self, request, *args, **kwargs):
         # Same for now
         exp = get_object_or_404(Experiment, pk=kwargs['pk'])
-        form_gene = GeneColForm(count_file=exp.file_path.path)
-        form_group = GeneCountGroupsForm(count_file=exp.file_path.path)
-        form_pca = SampleGroupsForm(count_file=exp.file_path.path)
+        form_gene = forms.GeneColForm(count_file=exp.file_path.path)
+        form_group = forms.GeneCountGroupsForm(count_file=exp.file_path.path)
+        form_pca = forms.SampleGroupsForm(count_file=exp.file_path.path)
         return render(request, self.template_name,
                       {'form_gene': form_gene, 'form_group': form_group,
                        'experiment': exp, 'form_pca': form_pca})
 
 
+class FoldChangeView(generic.View):
+    pass
+
+
+def load_fc(request, pk):
+    pass
+
+
+def filter_details(request, pk):
+    exp = get_object_or_404(Experiment, pk=pk)
+    form = forms.GeneCountFilterForm(request.GET, gene_col_idx=0,
+                                     count_file=exp.file_path.path)
+    if form.is_valid():
+        return JsonResponse({'table': form.filter()})
+    else:
+        print('It failed')
+        print(form.errors)
+        print(form.non_field_errors)
+        return JsonResponse({'table': form.errors})
+
+
 def load_groups(request, pk):
     gene_col_idx = request.GET.get('gene_col_idx')
     exp = get_object_or_404(Experiment, pk=pk)
-    form_group = GeneCountGroupsForm(gene_col_idx=gene_col_idx,
-                                     count_file=exp.file_path.path)
-    form_pca = SampleGroupsForm(gene_col_idx=gene_col_idx,
-                                count_file=exp.file_path.path)
+    form_group = forms.GeneCountGroupsForm(gene_col_idx=gene_col_idx,
+                                           count_file=exp.file_path.path)
+    form_pca = forms.SampleGroupsForm(gene_col_idx=gene_col_idx,
+                                      count_file=exp.file_path.path)
     return JsonResponse({'groups': form_group.as_table(),
                          'pca': form_pca.as_table()})
 
 
 def load_volcano_plot(request, pk):
+    # This pre logic should probably be in the form
+    # and make the form on this end a sub class of the chose groups forms
+    # ie make a pca/volcano plot form class
     exp = get_object_or_404(Experiment, pk=pk)
     data = dict(request.GET)
     gene_col = int(data.pop('Select Gene Column')[0])
@@ -133,9 +168,3 @@ def load_pca(request, pk):
     plt_div = graphs.pca_plot(exp.file_path.path, groups=groups,
                               index_col=gene_col)
     return render(request, 'browse/load_graph.html', {'graph': plt_div})
-
-
-def detail(request, pk):
-    # Use generic ExpDetailView above
-    experiment = get_object_or_404(Experiment, pk=pk)
-    return render(request, 'browse/detail.html', {'experiment': experiment})
